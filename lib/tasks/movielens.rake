@@ -3,7 +3,7 @@ require 'date'
 namespace :movielens do
   desc "Lods All Data"
   task load_data: :environment do
-    #add_movies
+    add_movies
     add_ratings
     add_tags
     add_links
@@ -43,6 +43,7 @@ namespace :movielens do
       movie.ratings.create(:user_id => user.id, :rating => rating, :timestamp => DateTime.strptime(timestamp,'%s'))
 
       print "Ratings Counter: #{counter} \r" 
+      counter += 1
     end
     puts ""
   end
@@ -57,6 +58,7 @@ namespace :movielens do
       movie.tags.create(:user_id => user.id, :rating => rating, :timestamp => DateTime.strptime(timestamp,'%s'))
 
       print "Tags Counter: #{counter} \r" 
+      counter += 1
     end
     puts ""
   end
@@ -70,6 +72,7 @@ namespace :movielens do
       movie.tmdb_id = tmdp
       movie.save!
       print "Links Counter: #{counter} \r" 
+      counter += 1
     end
     puts ""
   end
