@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150406133007) do
+ActiveRecord::Schema.define(version: 20150407180820) do
 
   create_table "genres", force: :cascade do |t|
     t.integer  "movie_id",   limit: 4
@@ -44,6 +44,13 @@ ActiveRecord::Schema.define(version: 20150406133007) do
     t.datetime "timestamp"
     t.datetime "created_at",                          null: false
     t.datetime "updated_at",                          null: false
+  end
+
+  create_table "tags", force: :cascade do |t|
+    t.integer  "movie_id",  limit: 4
+    t.integer  "user_id",   limit: 4
+    t.string   "tag",       limit: 255
+    t.datetime "timestamp"
   end
 
   create_table "users", force: :cascade do |t|

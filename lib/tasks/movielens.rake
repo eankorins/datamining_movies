@@ -3,8 +3,8 @@ require 'date'
 namespace :movielens do
   desc "Lods All Data"
   task load_data: :environment do
-    add_movies
-    add_ratings
+    #add_movies
+    #add_ratings
     add_tags
     add_links
   end
@@ -27,7 +27,7 @@ namespace :movielens do
     movies.each_slice(1000) do |slice|
       ActiveRecord::Base.transaction do
         slice.each { |m| m.save! }
-        puts "Inserted #{(counter + 1) * 1000} Movies"
+        puts "Inserted #{slice.count} Movies"
       end
     end
     puts ""
@@ -36,14 +36,25 @@ namespace :movielens do
   desc "Loads Ratings and adds new Users"
   def add_ratings
     counter = 0
+    users = []
+    ratings = []
     CSV.foreach('ratings.csv') do |r|
       user_id, movie_id, rating, timestamp = r
-      user = User.find_by_id(user_id) || User.create(:id => user_id)
-      movie = Movie.find_by_id(movie_id)
-      movie.ratings.create(:user_id => user.id, :rating => rating, :timestamp => DateTime.strptime(timestamp,'%s'))
-
+      users << user_id
+      ratings << Rating.new(:user_id => user_id, :movie_id => movie_id, :rating => rating, :timestamp => DateTime.strptime(timestamp,'%s'))
       print "Ratings Counter: #{counter} \r" 
       counter += 1
+    end
+    ActiveRecord::Base.transaction do
+      users.uniq.each do |user|
+          User.create(:id => user)
+      end
+    end
+    ratings.each_slice(1000) do |slice|
+      ActiveRecord::Base.transaction do
+        
+          slice.each { |r| r.save! }
+      end
     end
     puts ""
   end
@@ -51,29 +62,38 @@ namespace :movielens do
   desc "Loads Tags and adds new Users"
   def add_tags
     counter = 0
+    users = []
+    ratings = []
     CSV.foreach('tags.csv') do |r|
-      user_id, movie_id, rating, timestamp = r
-      user = User.find_by_id(user_id) || User.create(:id => user_id)
-      movie = Movie.find_by_id(movie_id)
-      movie.tags.create(:user_id => user.id, :rating => rating, :timestamp => DateTime.strptime(timestamp,'%s'))
-
-      print "Tags Counter: #{counter} \r" 
+      user_id, movie_id, tag, timestamp = r
+      users << user_id
+      ratings << Tag.new(:user_id => user_id, :movie_id => movie_id, :tag => tag, :timestamp => DateTime.strptime(timestamp,'%s'))
+      print "Tag Counter: #{counter} \r" 
       counter += 1
+    end
+    ActiveRecord::Base.transaction do
+      ratings.each { |r| r.save! }
     end
     puts ""
   end
 
   desc "Loads Links (Movie IDs for API)"
   def add_links
+    counter = 0 
+    movies = []
     CSV.foreach('links.csv') do |r|
-      movie_id, imdb, tmdb = r
+      movie_id, imdb, tmdp = r
       movie = Movie.find_by_id(movie_id)
       movie.imdb_id = imdb
       movie.tmdb_id = tmdp
-      movie.save!
+      movies << movie
       print "Links Counter: #{counter} \r" 
       counter += 1
     end
+    ActiveRecord::Base.transaction do
+      movies.each{ |m| m.save! }
+    end
+
     puts ""
   end
 
